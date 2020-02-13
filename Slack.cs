@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -33,7 +34,8 @@ namespace SlackIL
         {
             if (!Cef.IsInitialized)
             {
-                var settings = new CefSettings() {
+                var settings = new CefSettings()
+                {
                     AcceptLanguageList = "fr-ca",
                     CachePath = @"Cache\",
                     Locale = "fr-CA",
@@ -56,7 +58,7 @@ namespace SlackIL
             /* browser.TitleChanged += Browser_TitleChanged;*/
             browser.DownloadHandler = new DownloadHandler();
             browser.DisplayHandler = new DisplayHandler();
-            browser.ConsoleMessage += c_ThresholdReached;
+            //browser.ConsoleMessage += c_ThresholdReached;
             browser.LifeSpanHandler = new BrowserLifeSpanHandler();
             browser.Tag = this;
 
@@ -71,16 +73,16 @@ namespace SlackIL
             TaskbarManager.Instance.ThumbnailToolBars.AddButtons(this.Handle, button1);*/
         }
 
-        static void c_ThresholdReached(object sender, ConsoleMessageEventArgs e)
-        {
-            var msg = e.Message.ToLower();
+        /* static void c_ThresholdReached(object sender, ConsoleMessageEventArgs e)
+         {
+             var msg = e.Message.ToLower();
 
-            if (msg.Contains("[COUNTS]"))
-            {
-                var i =1;
-            }
+             if (msg.Contains("[COUNTS]"))
+             {
+                 var i =1;
+             }
 
-        }
+         }*/
 
         public Slack(string url)
         {
@@ -96,10 +98,32 @@ namespace SlackIL
 
         private void NotifyMethod(dynamic js)
         {
-            if (AllreadyWarn != js.messageFull.ts)
+            string no = AllreadyWarn;
+            try
             {
+                no = js.messageFull.ts;
+            }
+            catch (Exception)
+            {
+            }
+            if (AllreadyWarn != no)
+            {
+
+                notify.BalloonTipIcon = ToolTipIcon.None;
                 notify.Icon = GetIcon(js.avatar);
-                notify.ShowBalloonTip(3000, js.userDisplayName + " - " + js.channelName ?? js.channelName2, js.message, ToolTipIcon.None);
+
+                var text = js.userDisplayName;
+
+                if (((string)js.channelName)[0] != 'U')
+                {
+                    text += " - " + js.channelName;
+                }
+                else
+                {
+                    text += " (en privé)";
+                }
+
+                notify.ShowBalloonTip(5000, text, js.message, ToolTipIcon.None);
 
 
 
@@ -122,6 +146,7 @@ namespace SlackIL
         public Icon GetIcon(string url)
         {
             Icon img = null;
+            //Icon ik = null;
             var request = WebRequest.Create(url);
 
             using (var response = request.GetResponse())
@@ -129,6 +154,7 @@ namespace SlackIL
             {
                 Bitmap i = new Bitmap(stream);
                 img = Icon.FromHandle(i.GetHicon());
+                //ik = new Icon(img, new Size(256, 256));
             }
 
             return img;
@@ -176,6 +202,29 @@ namespace SlackIL
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            System.Windows.Window w = new System.Windows.Window();
+            w.TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo() { ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal };
+            w.Loaded += delegate
+            {
+                Action<Object> callUpdateProgress = (o) =>
+                {
+                    w.TaskbarItemInfo.ProgressValue = (double)o;
+                };
+
+                Thread t = new Thread(() =>
+                {
+                    for (int i = 1; i <= 10; i++)
+                    {
+                        w.Dispatcher.BeginInvoke(callUpdateProgress, 1.0 * i / 10);
+                        Thread.Sleep(1000);
+                    }
+                });
+                t.Start();
+            };
+
+
+
+
             var updateURL = "http://slack.infologique.net/update/update.xml";
             AutoUpdater.ShowSkipButton = true;
             AutoUpdater.RunUpdateAsAdmin = false;
@@ -396,17 +445,34 @@ namespace SlackIL
                 //Color :
                 //     TS.interop.redux.models.members.getMemberById(TS.redux.getState(), "U9V09266M").color
 
-              /*  Task<JavascriptResponse> task2 = null;
+                Task<JavascriptResponse> task2 = null;
                 try
                 {
                     var script = @"       (function() {
-                                                var timestamp = TSM.interop.redux.models.notifications.getMaxTimestamp(TSM.redux.getState());
-                                                var message = TSM.interop.redux.models.messages.getMessagesByChannelId(TSM.redux.getState(), """ + channelId + @""")[timestamp];
+
+                                            function findVal(object, key) {
+                                                var value;
+                                                Object.keys(object).some(function(k) {
+                                                    if (k === key) {
+                                                        value = object[k];
+                                                        return true;
+                                                    }
+                                                    if (object[k] && typeof object[k] === 'object') {
+                                                        value = findVal(object[k], key);
+                                                        return value !== undefined;
+                                                    }
+                                                });
+                                                return value;
+                                            }
+
+                                                var timestamp = slackDebug.activeTeam.redux.getState().notifications.maxTs;
+                                                var message = findVal(slackDebug.activeTeam.redux.getState().messages, timestamp);
                                                 var text = message.text;
                                                 var userId = message.user;
-                                                var channelName2 = TSM.interop.redux.models.channels.getChannelById(TSM.redux.getState(), """ + channelId + @""").name;
-                                                var channelName = TSM.interop.redux.models.channels.getChannelById(TSM.redux.getState(), """ + channelId + @""")._display_name;
-                                                var member = TSM.interop.redux.models.members.getMemberById(TSM.redux.getState(), userId);
+                                                var channel = slackDebug.activeTeam.redux.getState().channels[message.channel];
+                                                var channelName = channel.name;
+                                             
+                                                var member = slackDebug.activeTeam.redux.getState().members[message.user];
                                                 var color = member.color;
                                                 var userDisplayName = member.profile.display_name;
                                                 var avatar = member.profile.image_72;
@@ -440,7 +506,7 @@ namespace SlackIL
                     }
                     catch (Exception) { }
 
-                });*/
+                });
             }
 
 
@@ -511,7 +577,7 @@ namespace SlackIL
 
                 });
 
-                 Bitmap ResizeImage(Image image, int width, int height)
+                Bitmap ResizeImage(Image image, int width, int height)
                 {
                     var destRect = new Rectangle(0, 0, width, height);
                     var destImage = new Bitmap(width, height);
@@ -538,7 +604,7 @@ namespace SlackIL
 
             }
 
-          
+
 
             public bool OnConsoleMessage(IWebBrowser browserControl, ConsoleMessageEventArgs consoleMessageArgs)
             {
@@ -655,9 +721,24 @@ namespace SlackIL
 
             public void OnLoadingProgressChange(IWebBrowser chromiumWebBrowser, IBrowser browser, double progress)
             {
-           
+
             }
         }
+
+        private void notify_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.WindowState = FormWindowState.Maximized;
+            this.Show();
+            this.BringToFront();
+        }
+
+        private void notify_BalloonTipClicked(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Maximized;
+            this.Show();
+            this.BringToFront();
+        }
+
     }
 
     internal class RequestHandler : IRequestHandler
@@ -673,10 +754,10 @@ namespace SlackIL
             return true; // throw new NotImplementedException();
         }
 
-       /* public bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, IFrame frame, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
-        {
-            return false; //throw new NotImplementedException();
-        }*/
+        /* public bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, IFrame frame, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
+         {
+             return false; //throw new NotImplementedException();
+         }*/
 
         public bool GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
         {
@@ -741,20 +822,20 @@ namespace SlackIL
 
         public void OnRenderViewReady(IWebBrowser browserControl, IBrowser browser)
         {
-            browserControl.ShowDevTools();
-            return;
+            //browserControl.ShowDevTools();
+
             var form = ((Slack)(((ChromiumWebBrowser)browserControl).Tag));
             Task<JavascriptResponse> task2 = null;
-            try
+           /* try
             {
                 browserControl.ShowDevTools();
                 /* browserControl?.GetMainFrame().ExecuteJavaScriptAsync(SlackIL.Icones.wsHook);
-                 browserControl?.GetMainFrame().ExecuteJavaScriptAsync(@"wsHook.before = function(data, url) {
-                                                                                 console.log(""Sending message to "" + url + "" : "" + data);}");*/
-                browserControl.ShowDevTools();
+                 browserControl?.GetMainFrame().ExecuteJavaScriptAsync(@"wsHook.before = function(data, url) 
+                                                                                 console.log(""Sending message to "" + url + "" : "" + data);}");
+                //browserControl.ShowDevTools();
                 //task2 = browserControl?.GetMainFrame().EvaluateScriptAsync("(function() { return TS.model.all_unread_cnt; })();", null);
             }
-            catch (Exception) { }
+            catch (Exception) { }*/
 
 
             task2?.ContinueWith(t =>
@@ -778,6 +859,7 @@ namespace SlackIL
                             badge = Icon.FromHandle(v);
 
                             TaskbarManager.Instance.SetOverlayIcon(badge, evaluateJavaScriptResult.ToString());
+                            // TaskbarItemInfo.Overlay = badge;
                             form.Invoke(form.flashBarDelegate, false);
                         }
                         else

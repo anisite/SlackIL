@@ -65,8 +65,10 @@ namespace SlackIL
             // 
             // notify
             // 
-            this.notify.Text = "notify";
+            this.notify.Text = "SlackIL";
             this.notify.Visible = true;
+            this.notify.BalloonTipClicked += new System.EventHandler(this.notify_BalloonTipClicked);
+            this.notify.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notify_MouseDoubleClick);
             // 
             // Slack
             // 
