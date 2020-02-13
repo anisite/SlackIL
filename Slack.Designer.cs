@@ -32,7 +32,9 @@ namespace SlackIL
         {
             this.components = new System.ComponentModel.Container();
             this.fichierToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fermerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aideToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.afficherDevToolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.notify = new System.Windows.Forms.NotifyIcon(this.components);
             this.menuStrip1.SuspendLayout();
@@ -40,20 +42,37 @@ namespace SlackIL
             // 
             // fichierToolStripMenuItem
             // 
+            this.fichierToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fermerToolStripMenuItem});
             this.fichierToolStripMenuItem.Name = "fichierToolStripMenuItem";
             this.fichierToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
             this.fichierToolStripMenuItem.Text = "Fichier";
             // 
+            // fermerToolStripMenuItem
+            // 
+            this.fermerToolStripMenuItem.Name = "fermerToolStripMenuItem";
+            this.fermerToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            this.fermerToolStripMenuItem.Text = "Fermer";
+            this.fermerToolStripMenuItem.Click += new System.EventHandler(this.fermerToolStripMenuItem_Click);
+            // 
             // aideToolStripMenuItem
             // 
+            this.aideToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.afficherDevToolsToolStripMenuItem});
             this.aideToolStripMenuItem.Name = "aideToolStripMenuItem";
             this.aideToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
             this.aideToolStripMenuItem.Text = "Aide";
             // 
+            // afficherDevToolsToolStripMenuItem
+            // 
+            this.afficherDevToolsToolStripMenuItem.Name = "afficherDevToolsToolStripMenuItem";
+            this.afficherDevToolsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.afficherDevToolsToolStripMenuItem.Text = "Afficher DevTools";
+            this.afficherDevToolsToolStripMenuItem.Click += new System.EventHandler(this.afficherDevToolsToolStripMenuItem_Click);
+            // 
             // menuStrip1
             // 
             this.menuStrip1.BackColor = System.Drawing.Color.White;
-            this.menuStrip1.Enabled = false;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fichierToolStripMenuItem,
             this.aideToolStripMenuItem});
@@ -94,6 +113,8 @@ namespace SlackIL
         private System.Windows.Forms.ToolStripMenuItem aideToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.NotifyIcon notify;
+        private System.Windows.Forms.ToolStripMenuItem fermerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem afficherDevToolsToolStripMenuItem;
     }
 }
 

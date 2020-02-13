@@ -58,6 +58,7 @@ namespace SlackIL
             /* browser.TitleChanged += Browser_TitleChanged;*/
             browser.DownloadHandler = new DownloadHandler();
             browser.DisplayHandler = new DisplayHandler();
+            browser.ExecuteScriptAsyncWhenPageLoaded("slackDebug.enable()");
             //browser.ConsoleMessage += c_ThresholdReached;
             browser.LifeSpanHandler = new BrowserLifeSpanHandler();
             browser.Tag = this;
@@ -445,6 +446,7 @@ namespace SlackIL
                 //Color :
                 //     TS.interop.redux.models.members.getMemberById(TS.redux.getState(), "U9V09266M").color
 
+
                 Task<JavascriptResponse> task2 = null;
                 try
                 {
@@ -739,6 +741,17 @@ namespace SlackIL
             this.BringToFront();
         }
 
+        private void fermerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void afficherDevToolsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var obj = sender as ToolStripMenuItem;
+
+            browser.ShowDevTools();
+        }
     }
 
     internal class RequestHandler : IRequestHandler
@@ -822,20 +835,24 @@ namespace SlackIL
 
         public void OnRenderViewReady(IWebBrowser browserControl, IBrowser browser)
         {
-            //browserControl.ShowDevTools();
+            // browserControl.ShowDevTools();
+
+
 
             var form = ((Slack)(((ChromiumWebBrowser)browserControl).Tag));
+
+
             Task<JavascriptResponse> task2 = null;
-           /* try
-            {
-                browserControl.ShowDevTools();
-                /* browserControl?.GetMainFrame().ExecuteJavaScriptAsync(SlackIL.Icones.wsHook);
-                 browserControl?.GetMainFrame().ExecuteJavaScriptAsync(@"wsHook.before = function(data, url) 
-                                                                                 console.log(""Sending message to "" + url + "" : "" + data);}");
-                //browserControl.ShowDevTools();
-                //task2 = browserControl?.GetMainFrame().EvaluateScriptAsync("(function() { return TS.model.all_unread_cnt; })();", null);
-            }
-            catch (Exception) { }*/
+            /* try
+             {
+                 browserControl.ShowDevTools();
+                 /* browserControl?.GetMainFrame().ExecuteJavaScriptAsync(SlackIL.Icones.wsHook);
+                  browserControl?.GetMainFrame().ExecuteJavaScriptAsync(@"wsHook.before = function(data, url) 
+                                                                                  console.log(""Sending message to "" + url + "" : "" + data);}");
+                 //browserControl.ShowDevTools();
+                 //task2 = browserControl?.GetMainFrame().EvaluateScriptAsync("(function() { return TS.model.all_unread_cnt; })();", null);
+             }
+             catch (Exception) { }*/
 
 
             task2?.ContinueWith(t =>
